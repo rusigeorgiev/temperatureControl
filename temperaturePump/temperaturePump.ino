@@ -5,11 +5,11 @@
  * the other one to A0;
  * A0 through 10 kOhm to GND.
  * 
- *    ^ 5.5V                                relay  pin6 ______\______
+ *    ^ 5.5V                                relay  pin9 ______\______
  *    |                                                             |
  *   _|_                                                            |
  *  |NTC|                                                         __|__ GND
- *  |10K| - termometer
+ *  |10K| - thermometers
  *  |___|
  *    |
  *    |
@@ -24,7 +24,11 @@
  *   ___
 */
 
-int tempDifTrigger = 5; // if there is tempDif degrees between the 2 termometers the relay will be switched ON
+int switchOnDif = 7; // if there is tempDif degrees between the 2 thermometers the relay will be switched ON
+int histeresis = 2; // it is used so that the relay does not switch on and off many times on the border temperature
+
+int switchOffDif = switchOnDif - histeresis;
+
 float tempDifActual = 0;// holds the actual temperature difference
 boolean ON = 1;
 boolean OFF = 0;
@@ -34,7 +38,7 @@ float tempBoiler = 15;
 
 int temperaturePinSolar = A0; // this is the pin connected to the solar cells
 int temperaturePinBoiler = A1; // this is the pin connected to the boiler coil
-int relayPin = 6; // this is the pin connected to the relay that turns on the pump
+int relayPin = 9; // this is the pin connected to the relay that turns on the pump
 
 void setup() {
   // put your setup code here, to run once:
@@ -96,11 +100,13 @@ void loop() {
   Serial.print ("Difference: ");
   Serial.println (tempDifActual);
 
-  if(tempDifActual > tempDifTrigger){
-    digitalWrite(relayPin, ON);
+  if(tempDifActual > switchOnDif){
+    digitalWrite(relayPin, HIGH);
     Serial.println ("Relay ON");
-  } else {
-    digitalWrite(relayPin, OFF);
+  } 
+  
+  if (tempDifActual < switchOffDif){
+    digitalWrite(relayPin, LOW);
     Serial.println ("Relay OFF");
   }
   delay (1000);
