@@ -5,15 +5,15 @@
  * the other one to A0;
  * A0 through 10 kOhm to GND.
  * 
- *    ^ 3.3V
- *    |
- *   _|_
- *  |NTC|
- *  |10K|
+ *    ^ 5.5V                                relay  pin6 ______\______
+ *    |                                                             |
+ *   _|_                                                            |
+ *  |NTC|                                                         __|__ GND
+ *  |10K| - termometer
  *  |___|
  *    |
  *    |
- *    +------------ A0
+ *    +------------ A0 and A1
  *    |
  *   _|_
  *  |   |
@@ -24,9 +24,17 @@
  *   ___
 */
 
+int tempDifTrigger = 5; // if there is tempDif degrees between the 2 termometers the relay will be switched ON
+float tempDifActual = 0;// holds the actual temperature difference
+boolean ON = 1;
+boolean OFF = 0;
+
+float tempSolar = 15;
+float tempBoiler = 15;
+
 int temperaturePinSolar = A0; // this is the pin connected to the solar cells
 int temperaturePinBoiler = A1; // this is the pin connected to the boiler coil
-int relayPin = 10; // this is the pin connected to the boiler coil
+int relayPin = 6; // this is the pin connected to the relay that turns on the pump
 
 void setup() {
   // put your setup code here, to run once:
@@ -70,17 +78,31 @@ void loop() {
   
   // solar temperature
   tmp = analogRead (temperaturePinSolar);
-  Serial.print ("Solar sensor = ");
-  Serial.println (tmp);
+  // Serial.print ("Solar sensor = ");
+  // Serial.println (tempSolar);
+  tempSolar = calculateTemperature(tmp);
 
-  printTemperature("Solar", calculateTemperature(tmp));
+  printTemperature("Solar", tempSolar);
 
   // boiler temperature
   tmp = analogRead (temperaturePinBoiler);
-  Serial.print ("Boiler sensor = ");
-  Serial.println (tmp);
+  // Serial.print ("Boiler sensor = ");
+  // Serial.println (tempBoiler);
+  tempBoiler = calculateTemperature(tmp);
 
-  printTemperature("Boiler", calculateTemperature(tmp));
+  printTemperature("Boiler", tempBoiler);
+
+  tempDifActual = abs(tempSolar - tempBoiler);
+  Serial.print ("Difference: ");
+  Serial.println (tempDifActual);
+
+  if(tempDifActual > tempDifTrigger){
+    digitalWrite(relayPin, ON);
+    Serial.println ("Relay ON");
+  } else {
+    digitalWrite(relayPin, OFF);
+    Serial.println ("Relay OFF");
+  }
   delay (1000);
 }
 
