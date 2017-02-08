@@ -13,7 +13,7 @@
  *  |___|
  *    |
  *    |
- *    +------------ A0 and A1
+ *    +------------ A0 to one thermometer and A1 to another thermometer connected in the same manner
  *    |
  *   _|_
  *  |   |
